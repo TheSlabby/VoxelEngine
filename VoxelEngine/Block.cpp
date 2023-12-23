@@ -34,19 +34,19 @@ glm::vec2 Block::getTexCoords(uint8_t pos) {
 }
 
 // Define the vertex indices for each face (two triangles per face)
-unsigned int faceVertices[6][6] = {
-    // TOP (3, 2, 6, 3, 6, 7)
-    {3, 2, 6, 3, 6, 7},
-    // BOTTOM (1, 0, 4, 1, 4, 5)
-    {1, 0, 4, 1, 4, 5},
-    // LEFT (0, 3, 7, 0, 7, 4)
-    {0, 3, 7, 0, 7, 4},
-    // RIGHT (2, 1, 5, 2, 5, 6)
-    {2, 1, 5, 2, 5, 6},
-    // FRONT (0, 1, 2, 0, 2, 3)
-    {0, 1, 2, 0, 2, 3},
-    // BACK (5, 4, 7, 5, 7, 6)
-    {5, 4, 7, 5, 7, 6}
+unsigned int faceVertices[6][4] = {
+    // TOP (3, 2, 6, 7)
+    {3, 2, 6, 7},
+    // BOTTOM (1, 0, 4, 5)
+    {1, 0, 4, 5},
+    // LEFT (0, 3, 7, 4)
+    {0, 3, 7, 4},
+    // RIGHT (2, 1, 5, 6)
+    {2, 1, 5, 6},
+    // FRONT (0, 1, 2, 3)
+    {0, 1, 2, 3},
+    // BACK (5, 4, 7, 6)
+    {5, 4, 7, 6}
 };
 
 int Block::faceToIndex(Block::Face face) {
@@ -72,13 +72,11 @@ Block::Block() {
     ID = 255; //air
 }
 
-void Block::loadFace(Face face, std::vector<Mesh::Vertex>& vertices) {
-    //make sure we're not air
-
-    if (ID == 255)
+void Block::loadFace(uint8_t ID, glm::vec3 position, Face face, std::vector<Mesh::Vertex>& vertices, std::vector<unsigned int>& indices) {
+    if (ID == 255) // Air block check
         return;
 
-    glm::vec2 offset = glm::vec2(0.0f); //0, 0
+    glm::vec2 offset = glm::vec2(0.0f);
     if (faceToIndex(face) == 0) {
         offset = blockTextures[ID].topTexture;
     }
@@ -89,20 +87,16 @@ void Block::loadFace(Face face, std::vector<Mesh::Vertex>& vertices) {
         offset = blockTextures[ID].sideTexture;
     }
 
-    //texture
-    glm::vec2 uvTopLeft = offset + glm::vec2(0.0f);
-    glm::vec2 uvTopRight = offset + glm::vec2(CELL_SIZE, 0.0f);
-    glm::vec2 uvBottomLeft = offset + glm::vec2(0.0f, CELL_SIZE);
-    glm::vec2 uvBottomRight = offset + glm::vec2(CELL_SIZE, CELL_SIZE);
-
-    // Define the UV coordinates for each vertex of a quad (2 triangles)
-    glm::vec2 uvCoordinates[6] = {
-        uvTopLeft, uvBottomLeft, uvBottomRight, // First triangle
-        uvTopLeft, uvBottomRight, uvTopRight    // Second triangle
+    glm::vec2 uvCoordinates[4] = {
+        offset + glm::vec2(0.0f, CELL_SIZE),         // Bottom Left
+        offset + glm::vec2(CELL_SIZE, CELL_SIZE),   // Bottom Right
+        offset + glm::vec2(CELL_SIZE, 0.0f),         // Top Right
+        offset + glm::vec2(0.0f, 0.0f)              // Top Left
     };
 
-    // Append the vertices for the specified face
-    for (int i = 0; i < 6; i++) {
+    unsigned int indexOffset = vertices.size();
+    // Append vertices for the specified face
+    for (int i = 0; i < 4; i++) {
         unsigned int vIndex = faceVertices[faceToIndex(face)][i];
         Mesh::Vertex v;
         v.position = unitVertices[vIndex] + position;
@@ -110,13 +104,21 @@ void Block::loadFace(Face face, std::vector<Mesh::Vertex>& vertices) {
         v.texCoords = uvCoordinates[i];
         vertices.push_back(v);
     }
+
+    // Append indices for the specified face (two triangles)
+    indices.push_back(indexOffset);
+    indices.push_back(indexOffset + 1);
+    indices.push_back(indexOffset + 2);
+    indices.push_back(indexOffset);
+    indices.push_back(indexOffset + 2);
+    indices.push_back(indexOffset + 3);
 }
 
-void Block::loadAllFaces(std::vector<Mesh::Vertex>& vertices) {
-    Block::loadFace(Block::TOP, vertices);
-    Block::loadFace(Block::BOTTOM, vertices);
-    Block::loadFace(Block::LEFT, vertices);
-    Block::loadFace(Block::RIGHT, vertices);
-    Block::loadFace(Block::FRONT, vertices);
-    Block::loadFace(Block::BACK, vertices);
+void Block::loadAllFaces(uint8_t ID, glm::vec3 position, std::vector<Mesh::Vertex>& vertices, std::vector<unsigned int>& indices) {
+    Block::loadFace(ID, position, Block::TOP, vertices, indices);
+    Block::loadFace(ID, position, Block::BOTTOM, vertices, indices);
+    Block::loadFace(ID, position, Block::LEFT, vertices, indices);
+    Block::loadFace(ID, position, Block::RIGHT, vertices, indices);
+    Block::loadFace(ID, position, Block::FRONT, vertices, indices);
+    Block::loadFace(ID, position, Block::BACK, vertices, indices);
 }

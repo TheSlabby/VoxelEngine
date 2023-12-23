@@ -16,14 +16,15 @@ public:
 		glm::vec2 texCoords;
 	};
 
-	Mesh(const std::vector<Vertex>& vertices);
+	Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
 	void draw();
 	void setupMesh();
 
 	std::vector<Vertex> vertices;
+	std::vector<unsigned int> indices;
 
 
 private:
-	unsigned int vao, vbo, vaoSize;
+	unsigned int vao, vbo, ebo, vaoSize;
 };
 

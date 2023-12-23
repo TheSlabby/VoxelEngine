@@ -41,7 +41,7 @@ bool Application::initialize() {
         exit(-1);
     }
 
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Set clear color to gray
+    glClearColor(0.5f, 0.8f, 0.95f, 1.0f); // Set clear color to gray
 
     //initialize block dictionaries
     Block::Initialize();
@@ -86,6 +86,7 @@ void Application::run() {
 
 void Application::mainLoop() {
     double lastTime = glfwGetTime();
+    double lastChunkUpdate = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
         double dt = glfwGetTime() - lastTime;
         lastTime = glfwGetTime();
@@ -99,26 +100,30 @@ void Application::mainLoop() {
         shader.setVec3("viewPos", Camera::getInstance().camPos);
 
 
-        std::cout << "Chunks in memory: " << chunks.size() << std::endl;
+        //std::cout << "Chunks in memory: " << chunks.size() << std::endl;
         //render new chunks
-        int xPos = Camera::getInstance().camPos.x / Chunk::CHUNK_SIZE;
-        int yPos = Camera::getInstance().camPos.z / Chunk::CHUNK_SIZE;
-        bool chunkAdded = false;
-        for (int x = -Chunk::CHUNK_RENDER_RADIUS + xPos; x <= Chunk::CHUNK_RENDER_RADIUS + xPos; x++) {
-            for (int y = -Chunk::CHUNK_RENDER_RADIUS + yPos; y <= Chunk::CHUNK_RENDER_RADIUS + yPos; y++) {
-                bool found = false;
-                for (Chunk chunk : chunks) {
-                    if (chunk.position.x == x && chunk.position.y == y)
-                        found = true;
-                }
+        if (glfwGetTime() - lastChunkUpdate > 0.1) 
+        {
+            lastChunkUpdate = glfwGetTime();
+            int xPos = Camera::getInstance().camPos.x / Chunk::CHUNK_SIZE;
+            int yPos = Camera::getInstance().camPos.z / Chunk::CHUNK_SIZE;
+            bool chunkAdded = false;
+            for (int x = -Chunk::CHUNK_RENDER_RADIUS + xPos; x <= Chunk::CHUNK_RENDER_RADIUS + xPos; x++) {
+                for (int y = -Chunk::CHUNK_RENDER_RADIUS + yPos; y <= Chunk::CHUNK_RENDER_RADIUS + yPos; y++) {
+                    bool found = false;
+                    for (Chunk chunk : chunks) {
+                        if (chunk.position.x == x && chunk.position.y == y)
+                            found = true;
+                    }
 
-                //add chunk & render, if it doesnt exist yet
-                if (!found && !chunkAdded) {
-                    Chunk chunk(glm::vec2(x, y));
-                    chunk.loadBlocks();
-                    chunk.loadMesh();
-                    chunks.push_back(chunk);
-                    chunkAdded = true;
+                    //add chunk & render, if it doesnt exist yet
+                    if (!found && !chunkAdded) {
+                        Chunk chunk(glm::vec2(x, y));
+                        chunk.loadBlocks();
+                        chunk.loadMesh();
+                        chunks.push_back(chunk);
+                        chunkAdded = true;
+                    }
                 }
             }
         }

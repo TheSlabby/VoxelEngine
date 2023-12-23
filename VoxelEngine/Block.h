@@ -23,11 +23,10 @@ public:
     Block(uint8_t ID);
     Block();
 
-    void loadFace(Face face, std::vector<Mesh::Vertex>& vertices);
-    void loadAllFaces(std::vector<Mesh::Vertex>& vertices);
+    static void loadFace(uint8_t ID, glm::vec3 position, Face face, std::vector<Mesh::Vertex>& vertices, std::vector<unsigned int>& indices);
+    static void loadAllFaces(uint8_t ID, glm::vec3 position, std::vector<Mesh::Vertex>& vertices, std::vector<unsigned int>& indices);
 
     glm::vec3 position;
-
     uint8_t ID;
 
     static void Initialize();
@@ -35,7 +34,7 @@ public:
 
 
 private:
-    int faceToIndex(Face face);
+    static int faceToIndex(Face face);
 
 
     struct BlockTexture {

@@ -1,49 +1,43 @@
 #include "Mesh.h"
 
-
 Mesh::Mesh() {
-    std::vector<Vertex> v;
-    vertices = v;
+    // Initializer can be empty if you're not setting up anything by default
 }
-Mesh::Mesh(const std::vector<Vertex>& vertices) : vertices(vertices) {
+
+Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
+    : vertices(vertices), indices(indices) {
 }
 
 void Mesh::setupMesh() {
-    // Generate and bind VAO
     glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // Generate and bind VBO
     glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), this->vertices.data(), GL_STATIC_DRAW);
+    glGenBuffers(1, &ebo);  // Generate EBO
 
-    // Set vertex attribute pointers
-    // Position attribute
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);  // Bind EBO
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+    // Vertex attribute pointers remain the same
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     glEnableVertexAttribArray(0);
-    // Normal attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     glEnableVertexAttribArray(1);
-    // Texture coordinate attribute
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
     glEnableVertexAttribArray(2);
 
-    // Unbind VAO
     glBindVertexArray(0);
 
-    //free memory
-    vaoSize = vertices.size();
+    // Free memory
+    vaoSize = indices.size();  // Now using the size of the indices
     std::vector<Vertex>().swap(vertices);
+    std::vector<unsigned int>().swap(indices);  // Clear index data from memory
 }
 
 void Mesh::draw() {
-    // Bind the VAO
     glBindVertexArray(vao);
-
-    // Draw the mesh using vertices only
-    glDrawArrays(GL_TRIANGLES, 0, vaoSize);
-
-    // Unbind the VAO
+    glDrawElements(GL_TRIANGLES, vaoSize, GL_UNSIGNED_INT, 0);  // Use glDrawElements
     glBindVertexArray(0);
 }
