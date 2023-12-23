@@ -26,6 +26,10 @@ void Block::Initialize() {
 
     //populate textures
     blockTextures[0] = { getTexCoords(0), getTexCoords(3), getTexCoords(2) }; // Grass
+    blockTextures[1] = { getTexCoords(2), getTexCoords(2), getTexCoords(2) }; // Dirt
+    blockTextures[2] = { getTexCoords(1), getTexCoords(1), getTexCoords(1) }; // Stone
+    blockTextures[3] = { getTexCoords(66), getTexCoords(66), getTexCoords(66) }; //Snow Block
+
 }
 glm::vec2 Block::getTexCoords(uint8_t pos) {
     int x = pos % CANVAS_SIZE;
@@ -35,14 +39,10 @@ glm::vec2 Block::getTexCoords(uint8_t pos) {
 
 // Define the vertex indices for each face (two triangles per face)
 unsigned int faceVertices[6][4] = {
-    // TOP (3, 2, 6, 7)
     {3, 2, 6, 7},
-    // BOTTOM (1, 0, 4, 5)
     {1, 0, 4, 5},
-    // LEFT (0, 3, 7, 4)
-    {0, 3, 7, 4},
-    // RIGHT (2, 1, 5, 6)
-    {2, 1, 5, 6},
+    {4, 0, 3, 7},
+    {1, 5, 6, 2},
     // FRONT (0, 1, 2, 3)
     {0, 1, 2, 3},
     // BACK (5, 4, 7, 6)

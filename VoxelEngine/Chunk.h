@@ -11,10 +11,12 @@ public:
     //constants
     static constexpr int CHUNK_SIZE = 16;
     static constexpr int CHUNK_HEIGHT = 64;
-    static constexpr int CHUNK_RENDER_RADIUS = 3;
+    static constexpr int CHUNK_RENDER_RADIUS = 4;
+    static constexpr int SEED = 123456u;
 
-    unsigned int seed = 123456u;
-    siv::PerlinNoise perlin{ seed };
+    //generation
+    siv::PerlinNoise perlin{ SEED };
+    uint8_t generateTerrain(int x, int y, int z);
 
     Chunk(glm::vec2 position);
 

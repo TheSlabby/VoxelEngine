@@ -46,6 +46,8 @@ bool Application::initialize() {
     //initialize block dictionaries
     Block::Initialize();
 
+    srand(Chunk::SEED);
+
     //chunks
     Chunk chunk(glm::vec2(0, 0));
     chunk.loadBlocks();
