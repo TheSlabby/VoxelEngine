@@ -43,16 +43,17 @@ bool Application::initialize() {
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Set clear color to gray
 
-    //setup mesh for drawing
-    Block block(glm::vec3(0.0f, 0.0f, 0.0f), 0);
-    Block block2(glm::vec3(2.0f, 0.0f, 0.0f), 1);
-    block.loadAllFaces(mesh.vertices);
-    block2.loadAllFaces(mesh.vertices);
-    mesh.setupMesh();
+    //initialize block dictionaries
+    Block::Initialize();
+
+    //chunks
+    Chunk chunk(glm::vec2(0, 0));
+    chunk.loadBlocks();
+    chunk.loadMesh();
+    chunks.push_back(chunk);
 
     //setup shader
     shader.setShader("vertex.glsl", "fragment.glsl");
-    shader.setInt("texture1", 0);
 
     //load textures
     if (texture.load("assets/atlas.png")) {
@@ -84,17 +85,55 @@ void Application::run() {
 }
 
 void Application::mainLoop() {
+    double lastTime = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
+        double dt = glfwGetTime() - lastTime;
+        lastTime = glfwGetTime();
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        processInput();
+        processInput(dt);
+
+
+        shader.setInt("texture1", 0);
+        shader.setVec3("viewPos", Camera::getInstance().camPos);
+
+
+        std::cout << "Chunks in memory: " << chunks.size() << std::endl;
+        //render new chunks
+        int xPos = Camera::getInstance().camPos.x / Chunk::CHUNK_SIZE;
+        int yPos = Camera::getInstance().camPos.z / Chunk::CHUNK_SIZE;
+        bool chunkAdded = false;
+        for (int x = -Chunk::CHUNK_RENDER_RADIUS + xPos; x <= Chunk::CHUNK_RENDER_RADIUS + xPos; x++) {
+            for (int y = -Chunk::CHUNK_RENDER_RADIUS + yPos; y <= Chunk::CHUNK_RENDER_RADIUS + yPos; y++) {
+                bool found = false;
+                for (Chunk chunk : chunks) {
+                    if (chunk.position.x == x && chunk.position.y == y)
+                        found = true;
+                }
+
+                //add chunk & render, if it doesnt exist yet
+                if (!found && !chunkAdded) {
+                    Chunk chunk(glm::vec2(x, y));
+                    chunk.loadBlocks();
+                    chunk.loadMesh();
+                    chunks.push_back(chunk);
+                    chunkAdded = true;
+                }
+            }
+        }
+
+        for (Chunk chunk : chunks) {
+            chunk.draw();
+        }
+        
 
         //draw
         shader.use();
 
         shader.setMat4("view", Camera::getInstance().getViewMatrix());
         shader.setMat4("projection", Camera::getInstance().projectionMatrix);
-        mesh.draw();
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -113,7 +152,7 @@ void Application::cleanup() {
     glfwTerminate();
 }
 
-void Application::processInput()
+void Application::processInput(double dt)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -135,5 +174,5 @@ void Application::processInput()
         moveDir.y -= 1;
 
     if (length(moveDir) > 0)
-        Camera::getInstance().updatePos(normalize(moveDir));
+        Camera::getInstance().updatePos(normalize(moveDir), dt);
 }

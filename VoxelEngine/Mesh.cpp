@@ -31,6 +31,10 @@ void Mesh::setupMesh() {
 
     // Unbind VAO
     glBindVertexArray(0);
+
+    //free memory
+    vaoSize = vertices.size();
+    std::vector<Vertex>().swap(vertices);
 }
 
 void Mesh::draw() {
@@ -38,7 +42,7 @@ void Mesh::draw() {
     glBindVertexArray(vao);
 
     // Draw the mesh using vertices only
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glDrawArrays(GL_TRIANGLES, 0, vaoSize);
 
     // Unbind the VAO
     glBindVertexArray(0);

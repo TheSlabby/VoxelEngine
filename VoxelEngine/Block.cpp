@@ -1,12 +1,9 @@
 #include "Block.h"
 
-const float CELL_SIZE = 1.0f/16.0f;
-struct BlockTexture {
-    glm::vec2 topTexture;
-    glm::vec2 sideTexture;
-    glm::vec2 bottomTexture;
-};
-std::unordered_map<uint8_t, BlockTexture> blockTextures;
+//canvas is a square
+const int CANVAS_SIZE = 16;
+const float CELL_SIZE = 1.0f/CANVAS_SIZE;
+
 
 
 glm::vec3 unitVertices[8] = {
@@ -17,7 +14,24 @@ glm::vec3 unitVertices[8] = {
 };
 
 
-std::unordered_map<Block::Face, glm::vec3> blockToVecMapping;
+std::unordered_map<Block::Face, glm::vec3> Block::blockToVecMapping;
+std::unordered_map<uint8_t, Block::BlockTexture> Block::blockTextures;
+void Block::Initialize() {
+    blockToVecMapping[Block::TOP] = glm::vec3(0, 1, 0);
+    blockToVecMapping[Block::BOTTOM] = glm::vec3(0, -1, 0);
+    blockToVecMapping[Block::FRONT] = glm::vec3(0, 0, -1);
+    blockToVecMapping[Block::BACK] = glm::vec3(0, 0, 1);
+    blockToVecMapping[Block::RIGHT] = glm::vec3(1, 0, 0);
+    blockToVecMapping[Block::LEFT] = glm::vec3(-1, 0, 0);
+
+    //populate textures
+    blockTextures[0] = { getTexCoords(0), getTexCoords(3), getTexCoords(2) }; // Grass
+}
+glm::vec2 Block::getTexCoords(uint8_t pos) {
+    int x = pos % CANVAS_SIZE;
+    int y = pos / CANVAS_SIZE;
+    return glm::vec2(x * CELL_SIZE, y * CELL_SIZE);
+}
 
 // Define the vertex indices for each face (two triangles per face)
 unsigned int faceVertices[6][6] = {
@@ -49,21 +63,31 @@ int Block::faceToIndex(Block::Face face) {
 }
 
 Block::Block(glm::vec3 pos, uint8_t ID) : position(pos), ID(ID) {
-    //probably shouldnt put it here but whatever
-    blockToVecMapping[Block::TOP] = glm::vec3(0, 1, 0);
-    blockToVecMapping[Block::BOTTOM] = glm::vec3(0, -1, 0);
-    blockToVecMapping[Block::FRONT] = glm::vec3(0, 0, -1);
-    blockToVecMapping[Block::BACK] = glm::vec3(0, 0, 1);
-    blockToVecMapping[Block::RIGHT] = glm::vec3(1, 0, 0);
-    blockToVecMapping[Block::LEFT] = glm::vec3(-1, 0, 0);
+    
+}
+Block::Block(uint8_t ID) : ID(ID) {
 
-    //populate textures
-    blockTextures[0] = { glm::vec2(0.0f, 0.0f), glm::vec2(3*CELL_SIZE, 0), glm::vec2(2*CELL_SIZE, 0)}; // Grass
-
+}
+Block::Block() {
+    ID = 255; //air
 }
 
 void Block::loadFace(Face face, std::vector<Mesh::Vertex>& vertices) {
-    glm::vec2 offset = blockTextures[ID].topTexture;
+    //make sure we're not air
+
+    if (ID == 255)
+        return;
+
+    glm::vec2 offset = glm::vec2(0.0f); //0, 0
+    if (faceToIndex(face) == 0) {
+        offset = blockTextures[ID].topTexture;
+    }
+    else if (faceToIndex(face) == 1) {
+        offset = blockTextures[ID].bottomTexture;
+    }
+    else {
+        offset = blockTextures[ID].sideTexture;
+    }
 
     //texture
     glm::vec2 uvTopLeft = offset + glm::vec2(0.0f);
@@ -84,7 +108,6 @@ void Block::loadFace(Face face, std::vector<Mesh::Vertex>& vertices) {
         v.position = unitVertices[vIndex] + position;
         v.normal = blockToVecMapping[face];
         v.texCoords = uvCoordinates[i];
-        std::cout << uvCoordinates[i].x << std::endl;
         vertices.push_back(v);
     }
 }

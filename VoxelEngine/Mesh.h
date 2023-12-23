@@ -24,6 +24,6 @@ public:
 
 
 private:
-	unsigned int vao, vbo;
+	unsigned int vao, vbo, vaoSize;
 };
 

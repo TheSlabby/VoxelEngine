@@ -1,12 +1,13 @@
 #include "Camera.h"
 
 const float CAM_SENSITIVITY = .002f;
-const float CAM_SPEED = .005f;
+const float CAM_SPEED = 20;
 
 //projection params
 
 Camera::Camera() {
 	projectionMatrix = glm::perspective(glm::radians(FOV), (float)SCR_WIDTH / SCR_HEIGHT, NEAR_PLANE, FAR_PLANE);
+	camPos = glm::vec3(0, 50, 0);
 }
 
 glm::vec3 Camera::getFrontVector() {
@@ -26,16 +27,16 @@ void Camera::updateMouse(glm::vec2 mousePos) {
 }
 
 
-void Camera::updatePos(glm::vec3 moveDirection) {
+void Camera::updatePos(glm::vec3 moveDirection, double dt) {
 	glm::vec3 up(0.0f, 1.0f, 0.0f);
 
 	glm::vec3 front = glm::normalize(getFrontVector());
 	glm::vec3 right = glm::normalize(glm::cross(front, up));
 	up = glm::normalize(glm::cross(right, front));
 
-	camPos += up * moveDirection.y * CAM_SPEED;
-	camPos += front * moveDirection.z * -CAM_SPEED;
-	camPos += right * moveDirection.x * CAM_SPEED;
+	camPos += up * moveDirection.y * CAM_SPEED * (float)dt;
+	camPos += front * moveDirection.z * -CAM_SPEED * (float)dt;
+	camPos += right * moveDirection.x * CAM_SPEED * (float)dt;
 
 	// Camera::print();
 }

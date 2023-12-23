@@ -27,7 +27,7 @@ public:
 
 	glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 0.0f);
 	void updateMouse(glm::vec2 mousePos);
-	void updatePos(glm::vec3 moveDirection);
+	void updatePos(glm::vec3 moveDirection, double dt);
 	void print();
 	glm::mat4 getViewMatrix();
 	glm::mat4 projectionMatrix;

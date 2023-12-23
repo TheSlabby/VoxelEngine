@@ -5,6 +5,7 @@
 #include "Block.h"
 #include "Texture.h"
 #include "Camera.h"
+#include "Chunk.h"
 #include <GLFW/glfw3.h>
 #include "stb_image.h"
 
@@ -17,9 +18,11 @@ public:
 	Application();
 	~Application();
 
-	Mesh mesh;
 	Shader shader;
 	Texture texture;
+
+	//chunks
+	std::vector<Chunk> chunks;
 
 	void print(const char* str);
 	static void sprint(const char* str);
@@ -33,7 +36,7 @@ private:
 	void mainLoop();
 	void cleanup();
 
-	void processInput();
+	void processInput(double dt);
 
 	GLFWwindow* window;
 };
