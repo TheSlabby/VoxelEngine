@@ -47,7 +47,7 @@ void Chunk::loadBlocks() {
 
 uint8_t Chunk::generateTerrain(int x, int y, int z) {
 	double noise = perlin.octave2D_01((x * 0.01), (z * 0.01), 4);
-	noise = pow(noise, 3);
+	noise = pow(noise, 5);
 	int height = noise * 50;
 	if (y > height) {
 		return 255;

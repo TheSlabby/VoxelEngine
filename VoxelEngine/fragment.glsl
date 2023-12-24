@@ -7,6 +7,8 @@ in vec2 TexCoords;
 out vec4 FragColor;
 
 uniform sampler2D texture1;
+uniform sampler2D shadowMap;
+uniform mat4 lightSpaceMatrix;
 uniform vec3 viewPos;
 
 void main()
@@ -28,5 +30,23 @@ void main()
     //ambient color
     vec3 ambient = ambientStrength * vec3(1.0, 1.0, 1.0);
 
-    FragColor = texture(texture1, TexCoords) * vec4(ambient + diffuse, 1.0);
+    //shadows
+    vec4 fragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // check whether current frag pos is in shadow
+    float shadow = currentDepth > closestDepth + .001  ? 1.0 : 0.0;
+
+    shadow = closestDepth != 1 ? shadow : 0.0;
+
+
+    FragColor = texture(texture1, TexCoords) * vec4(ambient + diffuse + (1 - shadow), 1.0);
+    //FragColor = vec4(vec3(visibility ), 1.0);
+
 }

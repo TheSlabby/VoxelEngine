@@ -12,8 +12,8 @@ public:
 	~Texture();
 
 	bool load(const char* path);
+	unsigned int textureID;
 
 private:
-	unsigned int textureID;
 };
 

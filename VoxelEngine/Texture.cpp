@@ -23,6 +23,7 @@ bool Texture::load(const char* path) {
 
     // Generate and bind the texture
     glGenTextures(1, &textureID);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     // Set texture wrapping parameters

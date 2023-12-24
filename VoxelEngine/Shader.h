@@ -25,4 +25,11 @@ public:
 	void setFloat(const std::string& name, float value) const;
 	void setMat4(const std::string& name, glm::mat4 value) const;
 	void setVec3(const std::string& name, glm::vec3 value) const;
+
+
+	//shadow map
+	unsigned int depthMapFBO, depthMap;
+	int shadowWidth = 2048, shadowHeight = 2048; // Adjust the size as needed
+	void setupShadowMap();
+	void renderShadowMap(glm::mat4 lightSpaceMatrix);
 };
