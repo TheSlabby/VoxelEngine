@@ -29,7 +29,7 @@ public:
 
 	//shadow map
 	unsigned int depthMapFBO, depthMap;
-	int shadowWidth = 2048, shadowHeight = 2048; // Adjust the size as needed
+	int shadowWidth = 4096, shadowHeight = 4096; // Adjust the size as needed
 	void setupShadowMap();
 	void renderShadowMap(glm::mat4 lightSpaceMatrix);
 };

@@ -6,6 +6,7 @@
 #include "Texture.h"
 #include "Camera.h"
 #include "Chunk.h"
+#include "Client.h"
 #include <GLFW/glfw3.h>
 #include "stb_image.h"
 #include <imgui.h>
@@ -24,9 +25,10 @@ public:
 	Shader shader;
 	Shader shadowShader;
 	Texture texture;
+	Client client;
 
 	//chunks
-	std::vector<Chunk> chunks;
+	std::vector<std::unique_ptr<Chunk>> chunks;
 
 	bool isMouseLocked = true; // Initial state - mouse is locked
 

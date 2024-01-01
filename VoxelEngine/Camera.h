@@ -21,7 +21,7 @@ public:
 	static constexpr int SCR_HEIGHT = 900;
 	static constexpr float FOV = 90;
 	static constexpr float NEAR_PLANE = 0.1f;
-	static constexpr float FAR_PLANE = 100.0f;
+	static constexpr float FAR_PLANE = 200.0f;
 
 	static Camera& getInstance();
 

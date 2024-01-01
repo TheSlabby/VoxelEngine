@@ -11,7 +11,7 @@ public:
     //constants
     static constexpr int CHUNK_SIZE = 16;
     static constexpr int CHUNK_HEIGHT = 64;
-    static constexpr int CHUNK_RENDER_RADIUS = 4;
+    static constexpr int CHUNK_RENDER_RADIUS = 8;
     static constexpr int SEED = 123456u;
 
     //generation
@@ -19,6 +19,7 @@ public:
     uint8_t generateTerrain(int x, int y, int z);
 
     Chunk(glm::vec2 position);
+    ~Chunk();
 
 
     unsigned char blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];

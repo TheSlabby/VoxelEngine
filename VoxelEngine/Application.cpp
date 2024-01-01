@@ -50,6 +50,10 @@ bool Application::initialize() {
     srand(Chunk::SEED);
 
 
+    //CLIENT SETUP
+    client.start();
+
+
     //UI IMGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -61,10 +65,10 @@ bool Application::initialize() {
 
 
     //load initial chunk
-    Chunk chunk(glm::vec2(0, 0));
-    chunk.loadBlocks();
-    chunk.loadMesh();
-    chunks.push_back(chunk);
+    //Chunk chunk(glm::vec2(0, 0));
+    //chunk.loadBlocks();
+    //chunk.loadMesh();
+    //chunks.push_back(chunk);
 
 
     //load textures
@@ -98,8 +102,10 @@ void Application::run() {
     print("Running app...");
     if (!initialize())
         return;
-
+    
+    print("Initialized, starting main loop...");
     mainLoop();
+    print("Cleaning up...");
     cleanup();
 
     print("Done");
@@ -138,43 +144,55 @@ void Application::mainLoop() {
 
         //std::cout << "Chunks in memory: " << chunks.size() << std::endl;
         //render new chunks
-        if (glfwGetTime() - lastChunkUpdate > 0.1) 
+        int xPos = Camera::getInstance().camPos.x / Chunk::CHUNK_SIZE;
+        int yPos = Camera::getInstance().camPos.z / Chunk::CHUNK_SIZE;
+        if (glfwGetTime() - lastChunkUpdate > 0.05) 
         {
             lastChunkUpdate = glfwGetTime();
-            int xPos = Camera::getInstance().camPos.x / Chunk::CHUNK_SIZE;
-            int yPos = Camera::getInstance().camPos.z / Chunk::CHUNK_SIZE;
             bool chunkAdded = false;
             for (int x = -Chunk::CHUNK_RENDER_RADIUS + xPos; x <= Chunk::CHUNK_RENDER_RADIUS + xPos; x++) {
                 for (int y = -Chunk::CHUNK_RENDER_RADIUS + yPos; y <= Chunk::CHUNK_RENDER_RADIUS + yPos; y++) {
                     bool found = false;
-                    for (Chunk chunk : chunks) {
-                        if (chunk.position.x == x && chunk.position.y == y)
+                    for (const auto& chunk : chunks) {
+                        if (chunk->position.x == x && chunk->position.y == y)
                             found = true;
                     }
 
                     //add chunk & render, if it doesnt exist yet
                     if (!found && !chunkAdded) {
-                        Chunk chunk(glm::vec2(x, y));
-                        chunk.loadBlocks();
-                        chunk.loadMesh();
-                        chunks.push_back(chunk);
+                        auto chunk = std::make_unique<Chunk>(glm::vec2(x, y));
+                        chunk->loadBlocks();
+                        chunk->loadMesh();
+                        chunks.push_back(std::move(chunk));
                         chunkAdded = true;
+                        break;
                     }
                 }
             }
         }
 
+        //clear unneeded chunks
+        for (auto it = chunks.begin(); it != chunks.end();) {
+            if (it->get()->position.x < xPos - Chunk::CHUNK_RENDER_RADIUS || it->get()->position.x > xPos + Chunk::CHUNK_RENDER_RADIUS ||
+                it->get()->position.y < yPos - Chunk::CHUNK_RENDER_RADIUS || it->get()->position.y > yPos + Chunk::CHUNK_RENDER_RADIUS) {
 
-        //draw
+                it = chunks.erase(it);
+            }
+            else {
+                // Move to the next element
+                ++it;
+            }
+        }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //glCullFace(GL_BACK);
 
         //light space matrix
         glm::vec3 lightInvDir = glm::vec3(0.5f, 1, 1);
+        glm::vec3 lightPos = Camera::getInstance().camPos + (lightInvDir * glm::vec3(10));
         // Compute the MVP matrix from the light's point of view
-        glm::mat4 depthProjectionMatrix = glm::ortho<float>(-60, 60, -60, 60, -60, 100);
-        glm::mat4 depthViewMatrix = glm::lookAt(Camera::getInstance().camPos + (lightInvDir * glm::vec3(10)), Camera::getInstance().camPos, glm::vec3(0, 1, 0));
+        glm::mat4 depthProjectionMatrix = glm::ortho<float>(-50, 50, -50, 50, -10, 50);
+        glm::mat4 depthViewMatrix = glm::lookAt(lightPos, Camera::getInstance().camPos, glm::vec3(0, 1, 0));
         glm::mat4 depthModelMatrix = glm::mat4(1.0);
         glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
 
@@ -184,9 +202,11 @@ void Application::mainLoop() {
         glViewport(0, 0, shadowShader.shadowWidth, shadowShader.shadowHeight);
         glBindFramebuffer(GL_FRAMEBUFFER, shadowShader.depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
-        for (Chunk chunk : chunks) {
-            chunk.draw();
-        }
+
+        // render to shadowmap
+        for (auto& chunk : chunks) {
+			chunk->draw();
+		}
 
         shader.use();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -197,12 +217,14 @@ void Application::mainLoop() {
         shader.setInt("texture1", 0);
         shader.setMat4("view", Camera::getInstance().getViewMatrix());
         shader.setMat4("projection", Camera::getInstance().projectionMatrix);
+        shader.setVec3("lightPos", lightPos);
+        shader.setVec3("lightDir", -lightInvDir);
         shader.setMat4("lightSpaceMatrix", depthMVP);
-        for (Chunk chunk : chunks) {
-            chunk.draw();
+
+        //render to screen now
+        for (auto& chunk : chunks) {
+            chunk->draw();
         }
-
-
         
         //render ui
         if (glfwGetTime() - lastUIUpdate > 1) {
@@ -210,12 +232,16 @@ void Application::mainLoop() {
             lastFPS = 1.0 / dt;
         }
         glm::vec3 cameraPos = Camera::getInstance().camPos;
-        ImGui::Begin("Camera Info", NULL, ImGuiWindowFlags_AlwaysAutoResize); // Begin a new window named "Camera Info"
-        ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", cameraPos.x, cameraPos.y, cameraPos.z);
-        ImGui::Text("Chunk Position: (%i, %i)", (int)cameraPos.x / Chunk::CHUNK_SIZE, (int)cameraPos.z / Chunk::CHUNK_SIZE);
-        ImGui::Text("Chunks Loaded: (%i)", chunks.size());
-        ImGui::Text("FPS: %.2f", lastFPS);
-        ImGui::End();
+
+        if (!isMouseLocked)
+        {
+            ImGui::Begin("Camera Info", NULL, ImGuiWindowFlags_AlwaysAutoResize); // Begin a new window named "Camera Info"
+            ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", cameraPos.x, cameraPos.y, cameraPos.z);
+            ImGui::Text("Chunk Position: (%i, %i)", (int)cameraPos.x / Chunk::CHUNK_SIZE, (int)cameraPos.z / Chunk::CHUNK_SIZE);
+            ImGui::Text("Chunks Loaded: (%i)", chunks.size());
+            ImGui::Text("FPS: %.2f", lastFPS);
+            ImGui::End();
+        }
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

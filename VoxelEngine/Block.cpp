@@ -25,10 +25,10 @@ void Block::Initialize() {
     blockToVecMapping[Block::LEFT] = glm::vec3(-1, 0, 0);
 
     //populate textures
-    blockTextures[0] = { getTexCoords(0), getTexCoords(3), getTexCoords(2) }; // Grass
-    blockTextures[1] = { getTexCoords(2), getTexCoords(2), getTexCoords(2) }; // Dirt
-    blockTextures[2] = { getTexCoords(1), getTexCoords(1), getTexCoords(1) }; // Stone
-    blockTextures[3] = { getTexCoords(66), getTexCoords(66), getTexCoords(66) }; //Snow Block
+    blockTextures[BLOCK_GRASS] = { getTexCoords(0), getTexCoords(3), getTexCoords(2) }; // Grass
+    blockTextures[BLOCK_DIRT] = { getTexCoords(2), getTexCoords(2), getTexCoords(2) }; // Dirt
+    blockTextures[BLOCK_STONE] = { getTexCoords(1), getTexCoords(1), getTexCoords(1) }; // Stone
+    blockTextures[BLOCK_SNOW] = { getTexCoords(66), getTexCoords(66), getTexCoords(66) }; //Snow Block
 
 }
 glm::vec2 Block::getTexCoords(uint8_t pos) {

@@ -1,7 +1,9 @@
 #include "Chunk.h"
 
 Chunk::Chunk(glm::vec2 position) : position(position) {
-	
+}
+Chunk::~Chunk() {
+	std::cout << "Chunk destroyed: " << this << std::endl;
 }
 
 void Chunk::loadMesh() {
@@ -47,19 +49,19 @@ void Chunk::loadBlocks() {
 
 uint8_t Chunk::generateTerrain(int x, int y, int z) {
 	double noise = perlin.octave2D_01((x * 0.01), (z * 0.01), 4);
-	noise = pow(noise, 5);
-	int height = noise * 50;
+	noise = pow(noise, 3);
+	int height = noise * 70;
 	if (y > height) {
-		return 255;
+		return BLOCK_AIR;
 	}
 	else if (y == height) {
 		//snow
 		int variance = ((float)rand() / RAND_MAX) * 7; //between 0-7
 		if (y > 20 + variance)
-			return 3;	//snow
-		return 0;		//grass
+			return BLOCK_SNOW;	//snow
+		return BLOCK_GRASS;		//grass
 	}
 	else {
-		return 1;		//dirt
+		return BLOCK_DIRT;		//dirt
 	}
 }

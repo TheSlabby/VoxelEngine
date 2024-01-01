@@ -138,6 +138,7 @@
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Chunk.cpp" />
+    <ClCompile Include="Client.cpp" />
     <ClCompile Include="external\imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="external\imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="external\imgui\imgui.cpp" />
@@ -156,6 +157,7 @@
     <ClInclude Include="Block.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Chunk.h" />
+    <ClInclude Include="Client.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="PerlinNoise.hpp" />
     <ClInclude Include="Shader.h" />
