@@ -1,4 +1,5 @@
 #include "Chunk.h"
+#include <thread>
 
 Chunk::Chunk(glm::vec2 position) : position(position) {
 }
@@ -45,6 +46,15 @@ void Chunk::loadBlocks() {
 			}
 		}
 	}
+}
+
+void Chunk::loadAsync() {
+	//std::thread t(&Chunk::loadBlocks, &this);
+	std::thread([this] {
+		this->loadBlocks();
+		//std::cout << "New thread" << std::endl;
+		this->renderReady = true;
+	}).detach();
 }
 
 uint8_t Chunk::generateTerrain(int x, int y, int z) {

@@ -26,6 +26,9 @@ public:
 
 	static Application& getInstance();
 
+	// constants
+	static constexpr float CHUNK_LOAD_RATE = 0.01f;
+
 	Shader shader;
 	Shader shadowShader;
 	Texture texture;

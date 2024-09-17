@@ -25,7 +25,10 @@ public:
     unsigned char blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
     glm::vec2 position;
 
+    void loadAsync();
     void loadMesh();    //setup vertices
     void loadBlocks();  //use procedural generation for this part
+
+    std::atomic<bool> renderReady{ false };
 };
 

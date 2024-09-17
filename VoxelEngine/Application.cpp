@@ -59,15 +59,6 @@ bool Application::initialize() {
     player.setPosition(glm::vec3(0, 100, 0));
 
 
-    //UI IMGUI
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
-    ImGui_ImplOpenGL3_Init();
-
 
     //load textures
     if (texture.load("assets/atlas.png")) {
@@ -91,6 +82,15 @@ bool Application::initialize() {
     shader.setShader("vertex.glsl", "fragment.glsl");
     shadowShader.setShader("shadowVertex.glsl", "shadowFragment.glsl");
     shadowShader.setupShadowMap();
+
+    //UI IMGUI
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplOpenGL3_Init();
 
 
     return true;
@@ -152,7 +152,7 @@ void Application::mainLoop() {
         //render new chunks
         int xPos = Camera::getInstance().camPos.x / Chunk::CHUNK_SIZE;
         int yPos = Camera::getInstance().camPos.z / Chunk::CHUNK_SIZE;
-        if (glfwGetTime() - lastChunkUpdate > 0.05) 
+        if (glfwGetTime() - lastChunkUpdate > CHUNK_LOAD_RATE) 
         {
             lastChunkUpdate = glfwGetTime();
             bool chunkAdded = false;
@@ -167,13 +167,22 @@ void Application::mainLoop() {
                     //add chunk & render, if it doesnt exist yet
                     if (!found && !chunkAdded) {
                         auto chunk = std::make_unique<Chunk>(glm::vec2(x, y));
-                        chunk->loadBlocks();
-                        chunk->loadMesh();
+                        chunk->loadAsync();
+                        //chunk->loadMesh();
                         chunks.push_back(std::move(chunk));
                         chunkAdded = true;
                         break;
                     }
                 }
+            }
+        }
+
+        // check if chunks need rendering
+        for (auto& chunk : chunks) {
+            if (chunk->renderReady) {
+                chunk->loadMesh();
+                chunk->renderReady = false;
+                //std::cout << "Render is ready" << std::endl;
             }
         }
 
@@ -188,6 +197,8 @@ void Application::mainLoop() {
                 // Move to the next element
                 ++it;
             }
+
+            
         }
 
         //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -219,6 +230,7 @@ void Application::mainLoop() {
         glClear(GL_DEPTH_BUFFER_BIT);
         //glCullFace(GL_FRONT);
         glViewport(0, 0, Camera::SCR_WIDTH, Camera::SCR_HEIGHT);
+        glScissor(0, 0, Camera::SCR_WIDTH, Camera::SCR_HEIGHT);
         shader.setInt("shadowMap", 1);
         shader.setInt("texture1", 0);
         shader.setMat4("view", Camera::getInstance().getViewMatrix());
@@ -246,8 +258,18 @@ void Application::mainLoop() {
             ImGui::Text("Chunk Position: (%i, %i)", (int)cameraPos.x / Chunk::CHUNK_SIZE, (int)cameraPos.z / Chunk::CHUNK_SIZE);
             ImGui::Text("Chunks Loaded: (%i)", chunks.size());
             ImGui::Text("FPS: %.2f", lastFPS);
+
+            // Add "FLY" button
+            if (ImGui::Button("FLY")) {
+                print("FLY button clicked!");
+                // Implement your fly action here, for example, toggle a flying mode
+                // player.toggleFlyMode(); // Example function call
+            }
+
+
             ImGui::End();
         }
+
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -347,6 +369,7 @@ void Application::processInput(double dt)
         if (!keyWasPressed) {
             isMouseLocked = !isMouseLocked; // Toggle the state
             glfwSetInputMode(window, GLFW_CURSOR, isMouseLocked ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+            //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             keyWasPressed = true;
         }
     }
