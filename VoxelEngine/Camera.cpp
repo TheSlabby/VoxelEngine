@@ -50,6 +50,10 @@ glm::mat4 Camera::getViewMatrix() {
 	return glm::lookAt(camPos, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
+float Camera::getCameraYaw() {
+	return this->cameraAngle.x;
+}
+
 void Camera::print() {
 	std::cout << "Camera Position: " << camPos.x << ", " << camPos.y << ", " <<camPos.z << std::endl;
 }

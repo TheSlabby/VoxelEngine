@@ -16,11 +16,11 @@ uniform vec3 lightDir;
 void main()
 {
     vec3 lightColor = vec3(1.0, 1.0, 1.0);
-    vec3 lightDir = normalize(lightDir);
+    // vec3 lightDir = normalize(lightDir);
 
-    float ambientStrength = 0.8;
+    float ambientStrength = 0.6;
     float specularStrength = 2.0; //currently unused
-    float diffuseStrength = 0.6;
+    float diffuseStrength = 0.8;
 
     vec3 norm = normalize(Normal);
 
@@ -56,7 +56,7 @@ void main()
             shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
         }    
     }
-    shadow /= 9.0;
+    shadow /= 15.0;
     if(projCoords.z > 1.0)
     shadow = 0.0;
 

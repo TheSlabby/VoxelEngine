@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Entity.h"
 #include <glad/glad.h>
 #include "Mesh.h"
 #include "Block.h"
@@ -16,19 +17,26 @@
 #include <memory>
 #include <glm/ext/matrix_transform.hpp>
 
+
 class Application
 {
 public:
 	Application();
 	~Application();
 
+	static Application& getInstance();
+
 	Shader shader;
 	Shader shadowShader;
 	Texture texture;
 	Client client;
 
+	// main player entity
+	Entity player;
+
 	//chunks
 	std::vector<std::unique_ptr<Chunk>> chunks;
+	uint8_t getBlockAt(int x, int y, int z);
 
 	bool isMouseLocked = true; // Initial state - mouse is locked
 

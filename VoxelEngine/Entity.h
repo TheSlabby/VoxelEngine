@@ -21,20 +21,31 @@
 class Entity
 {
 public:
+	// constants
+	static const int MOVE_SPEED = 10;
+	static const int JUMP_POWER = 10;
+	static const int GRAVITY = 30;
+	static const int ENTITY_HEIGHT = 2;
+
+
 	// getters & setters
 	glm::vec3 getPosition();
 	void setPosition(const glm::vec3& pos);
 
-	void attemptMove(const glm::vec3& dir, double dt);
-	void attemptMove(const glm::vec3& moveDir, const glm::vec3& frontVector, double dt); // give camera front vector
+	void attemptMove(const glm::vec3& moveDir, float yaw, std::vector<std::unique_ptr<Chunk>>& chunks, double dt); // give camera front vector
+
+	void impulse(const glm::vec3& dir);
+	void jump();
 
 
 	// update entity on every render
-	void update(double dt);
+	void update(std::vector<std::unique_ptr<Chunk>>& chunks, double dt);
 
 
 private:
 	glm::vec3 position;
 	glm::vec3 velocity;
+
+	bool onGround;
 };
 

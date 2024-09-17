@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "Entity.h"
 
 
 
@@ -19,6 +20,7 @@ Application::Application() {
 Application::~Application() {
 	//destructor
 }
+
 
 bool Application::initialize() {
     if (!glfwInit()) {
@@ -42,7 +44,7 @@ bool Application::initialize() {
         exit(-1);
     }
 
-    glClearColor(0.5f, 0.8f, 0.95f, 1.0f); // Set clear color to gray
+    glClearColor(0.529f, 0.808f, 0.922f, 1.0f); // Set clear color to sky blue
 
     //initialize block dictionaries
     Block::Initialize();
@@ -51,7 +53,10 @@ bool Application::initialize() {
 
 
     //CLIENT SETUP
-    client.start();
+    //client.start();
+
+    // setup player entity
+    player.setPosition(glm::vec3(0, 100, 0));
 
 
     //UI IMGUI
@@ -62,13 +67,6 @@ bool Application::initialize() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
     ImGui_ImplOpenGL3_Init();
-
-
-    //load initial chunk
-    //Chunk chunk(glm::vec2(0, 0));
-    //chunk.loadBlocks();
-    //chunk.loadMesh();
-    //chunks.push_back(chunk);
 
 
     //load textures
@@ -123,6 +121,14 @@ void Application::mainLoop() {
         lastTime = glfwGetTime();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+
+        // update all entities
+        player.update(chunks, dt);
+
+        // set camera pos to player entity position
+        Camera::getInstance().camPos = player.getPosition();
 
 
 
@@ -184,11 +190,11 @@ void Application::mainLoop() {
             }
         }
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //glCullFace(GL_BACK);
 
         //light space matrix
-        glm::vec3 lightInvDir = glm::vec3(0.5f, 1, 1);
+        glm::vec3 lightInvDir = glm::vec3(0.5f, 1.5, 1);
         glm::vec3 lightPos = Camera::getInstance().camPos + (lightInvDir * glm::vec3(10));
         // Compute the MVP matrix from the light's point of view
         glm::mat4 depthProjectionMatrix = glm::ortho<float>(-50, 50, -50, 50, -10, 50);
@@ -218,7 +224,7 @@ void Application::mainLoop() {
         shader.setMat4("view", Camera::getInstance().getViewMatrix());
         shader.setMat4("projection", Camera::getInstance().projectionMatrix);
         shader.setVec3("lightPos", lightPos);
-        shader.setVec3("lightDir", -lightInvDir);
+        shader.setVec3("lightDir", glm::normalize(- lightInvDir));
         shader.setMat4("lightSpaceMatrix", depthMVP);
 
         //render to screen now
@@ -306,9 +312,10 @@ void Application::checkErrors() {
     }
 }
 
+// this should be in separate class but whatever
 void Application::processInput(double dt)
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == 1)
         glfwSetWindowShouldClose(window, true);
 
     glm::vec3 moveDir(0, 0, 0);
@@ -322,13 +329,16 @@ void Application::processInput(double dt)
         moveDir.x -= 1; // Move left
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         moveDir.x += 1; // Move right
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    /*if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         moveDir.y += 1;
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        moveDir.y -= 1;
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)*/
+        //moveDir.y -= 1;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        player.jump();
 
     if (length(moveDir) > 0)
-        Camera::getInstance().updatePos(normalize(moveDir), dt);
+        player.attemptMove(normalize(moveDir), Camera::getInstance().getCameraYaw(), chunks, dt);
+        //Camera::getInstance().updatePos(normalize(moveDir), dt);
 
 
     //unlock mouse
@@ -345,3 +355,27 @@ void Application::processInput(double dt)
     }
 
 }
+
+uint8_t Application::getBlockAt(int x, int y, int z) {
+    for (auto& chunk : chunks) {
+        int chunkX = chunk->position.x;
+        int chunkY = chunk->position.y;
+        if (x / chunk->CHUNK_SIZE == chunkX && z / chunk->CHUNK_SIZE == chunkY) {
+            return chunk->blocks[x % chunk->CHUNK_SIZE][y][z % chunk->CHUNK_SIZE];
+        }
+    }
+
+    return 0;
+}
+
+
+Application& Application::getInstance()
+{
+    static Application instance;
+    return instance;
+
+}
+//static Application& Application::getInstance() {
+//    static Application instance;
+//    return instance;
+//}
