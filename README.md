@@ -1,7 +1,9 @@
 # VoxelEngine
 Creating a simple voxel engine. [slabby.tech](https://slabby.tech)
 
+- Simple collision detection for first-person camera
+- Terrain generation w/ perlin noise in separate thread
+
 ## Terrain
-![image](https://github.com/TheSlabby/VoxelEngine/assets/33563846/02e9b548-a3d0-4067-843f-98a76b12c2c2)
-Used perlin noise and chunk-based system for creating simple terrain.
-Finally got shadows working (apparently glClear has to be called after binding framebuffer).
+![image](https://github.com/user-attachments/assets/07f8aac9-d55e-453b-8a73-696a7819260e)
+![image](https://github.com/user-attachments/assets/50e71303-a8bf-46cb-841a-a927f369884d)
