@@ -1,5 +1,5 @@
 # VoxelEngine
-Creating a simple voxel engine. [slabby.tech](https://slabby.tech)
+Creating a simple voxel engine. [slabby.dev]([https://slabby.tech](https://www.slabby.dev/blog/2023-12-24-start-voxelengine))
 
 - Simple collision detection for first-person camera
 - Terrain generation w/ perlin noise in separate thread
